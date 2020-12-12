@@ -1,40 +1,49 @@
 <?php
 
-class Auth extends Controller {
+class Task extends Controller {
 
 
-    public static function Action($request){
+    public static function Add($request) {
 
-        if(trim($request['login']) == '' || $request['password'] == '') {
+        if(strip_tags(htmlspecialchars(trim($request['name']))) == ''
+            || strip_tags(htmlspecialchars(trim($request['desc']))) == ''
+            || strip_tags(htmlspecialchars(trim($request['email']))) == ''
+            || !filter_var(strip_tags(htmlspecialchars(trim($request['email']))),FILTER_VALIDATE_EMAIL)
+        ) {
             die('incorrect params');
         }
-        $params['login'] = trim($request['login']);
-        $params['password'] = hash('sha256', $request['password']);
+        $params['author'] = strip_tags(htmlspecialchars(trim($request['name'])));
+        $params['email'] = strip_tags(htmlspecialchars(trim($request['email'])));
+        $params['description'] = strip_tags(htmlspecialchars(trim($request['desc'])));
+        $result = self::SetTask($params);
 
-        $user = self::GetUser($params);
-        if(!empty($user)) {
-
-            $cookie_name = 'key';
-            $cookie_value = substr($params['password'], 0, 5);;
-            setcookie($cookie_name, $cookie_value, time() + (86400 * 30), "/");
+        if($result == '1') {
             header('Location: /');
         } else {
-            die('Incorrect login details');
+            die($result);
         }
     }
 
-    public static function GetUser($params) {
-        return self::query("SELECT * FROM users WHERE login=:login AND password=:password", $params);
+    public static function SetTask($params) {
+        return self::query("INSERT INTO tasks (author, email, description) VALUES (:author, :email, :description)", $params);
     }
 
-    public static function Logout()
-    {
-        if (isset($_COOKIE['key'])) {
-            unset($_COOKIE['key']);
-            setcookie('key', null, -1, '/');
-            header('Location: /');
+    public static function Update($request) {
+        $params['id'] = strip_tags(htmlspecialchars(trim($request['id'])));
+
+        if(!empty(trim($request['content']))) {
+
+            $params['description'] = trim($request['content']);
+            $result = self::query("UPDATE tasks SET description=:description WHERE id=:id", $params);
+
+        } elseif (!empty($request['completed'])) {
+            $params['status'] = $request['completed'];
+            $result = self::query("UPDATE tasks SET status=:status WHERE id=:id", $params);
+        }
+        if($result == '1') {
+            echo 'success';
         } else {
-            die('Something went wrong..');
+            die($result);
         }
     }
 }

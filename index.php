@@ -1,5 +1,13 @@
 <?php
+ini_set("display_errors",1);
+error_reporting(E_ALL);
 
+function dd($array){
+    echo "<pre>";
+    print_r($array);
+//    var_dump($array);
+    exit;
+}
 require_once 'Routes.php';
 
 function __autoload($class_name) {

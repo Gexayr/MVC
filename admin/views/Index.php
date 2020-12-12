@@ -1,1 +1,0 @@
-<h1>admin 1 Index</h1>
